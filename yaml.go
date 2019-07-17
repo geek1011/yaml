@@ -153,6 +153,25 @@ func (n *Node) Decode(v interface{}) (err error) {
 	return nil
 }
 
+// DecodeStrict decodes the node and stores its data into the value pointed to by v.
+//
+// See the documentation for Unmarshal for details about the
+// conversion of YAML into a Go value.
+func (n *Node) DecodeStrict(v interface{}) (err error) {
+        d := newDecoder()
+        d.knownFields = true
+        defer handleErr(&err)
+        out := reflect.ValueOf(v)
+        if out.Kind() == reflect.Ptr && !out.IsNil() {
+                out = out.Elem()
+        }
+        d.unmarshal(n, out)
+        if len(d.terrors) > 0 {
+                return &TypeError{d.terrors}
+        }
+        return nil
+}
+
 func unmarshal(in []byte, out interface{}, strict bool) (err error) {
 	defer handleErr(&err)
 	d := newDecoder()
